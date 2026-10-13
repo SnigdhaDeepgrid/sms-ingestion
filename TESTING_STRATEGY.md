@@ -1,0 +1,24 @@
+# Testing Strategies
+
+**Project:** SMS Ingestion Dashboard
+
+| Success Criteria | Testing Strategy | Expected Result |
+|---|---|---|
+| **1. Validate SMS input and parsing** | Submit an empty message, whitespace-only message, malformed message, and valid messages using `G:`, `T:`, `N:`, `R:`, `D:`, `VE-`, `PR-`, `PA-`, and `TP-` formats. Also test Windows line endings and a single-line comma-separated message. | Invalid or empty input is rejected with an error. Valid input is normalized and the company, receipt, weights, dates, vehicle, product, party, and location are extracted correctly. |
+| **2. Add a new receipt** | Enter or upload a valid SMS and verify that the original text is stored and a structured parsed receipt appears in the register. | A `RawMessage` and related `ParsedMessage` are created. The parsed receipt is displayed with its receipt number, date, vehicle, party, net weight, price, and value. |
+| **3. Prevent duplicate receipts** | Submit the same SMS twice, including a second copy with extra leading or trailing whitespace. | The first valid message is stored. The second normalized copy is identified as a duplicate, is not inserted again, and is reported in the upload result. |
+| **4. Process bulk uploads** | Upload a JSON array containing string items, `{ text }` objects, duplicate messages, invalid items, and messages shorter than five characters. Also upload plain text containing blank-line-separated messages. | Valid new messages are processed, duplicates are counted separately, invalid or short items are skipped, and the response reports `processed`, `duplicates`, `skipped`, and `results` accurately. |
+| **5. Validate and apply product pricing** | Add a blank product, a non-numeric price, zero, and a negative price. Then save a valid product price and process a receipt containing that product. | Invalid prices are rejected. A valid price is saved or updated. Matching receipts use the configured `pricePerKg`; receipts without a matching price use zero. |
+| **6. Calculate receipt value correctly** | Configure a product price, submit a receipt with a known net weight, and compare the displayed value with `net × pricePerKg`. Test a receipt with no net weight or no configured price. | The value equals `(net ?? 0) × pricePerKg`. Missing net weight or pricing does not cause a crash and produces a zero-based calculation. |
+| **7. Search and sort receipt records** | Load several receipts, search using complete and partial party, vehicle, and receipt values with different letter cases, then inspect the returned list order. | Search is case-insensitive, supports partial matches, combines the three fields with OR logic, and an empty search displays all receipts. Backend lists follow their documented date/name/product sort order. |
+| **8. Manage vendors** | Submit a vendor with a blank name, then submit valid name and location values. Reload the Vendors tab and inspect the list. | Blank vendor names are rejected. Valid vendors are stored, displayed, and returned in name order with the location preserved. |
+| **9. Reparse existing records** | Change or add a product price, run the reparse utility, and inspect parsed records that already have a `rawMessageId`. | Existing parsed records are updated rather than duplicated. Current parser output, pricing, and calculated value are applied to each successfully reparsed raw message. |
+| **10. Display analytics** | Store several parsed receipts with known net weights and values, open the Analytics tab, and compare the dashboard totals with manual totals. | The application displays the correct message count, total net weight, and total value. Empty data returns zero-style totals rather than incorrect values. |
+| **11. Authenticate users and protect uploads** | Open the application without a session, try invalid credentials, log in with valid credentials, log out, and attempt the protected upload route without authentication. | Unauthenticated users see Login, invalid credentials show an error, valid credentials open the Dashboard, logout clears the session, and unauthorized uploads return HTTP 401. |
+| **12. Handle loading, errors, and refreshes** | Disconnect the backend during data loading, submit invalid requests, upload a valid file, and switch between dashboard tabs. | Loading and error states are shown clearly, network failures do not crash the UI, and a successful upload refreshes the register without a full page reload. |
+
+## Testing Notes
+
+- The table covers the functionality currently documented for the SMS dashboard.
+- The project does not currently provide car-record operations such as SQL insert, update, delete, voice recognition, or graph plotting.
+- The backend behavior is documented in `FULL_DOCUMENTATION.md`; `server/reparse.js` and `client/src/App.js` contain the checked-in implementation details available in the repository.

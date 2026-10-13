@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="500" viewBox="0 0 1100 500">
+  <style>
+    .box { fill:#ffffff; stroke:#1C2B1E; stroke-width:2; rx:6; }
+    .title { font: 700 14px 'Segoe UI', Arial; fill:#1C2B1E; }
+    .field { font: 13px 'Segoe UI', Arial; fill:#1C2B1E; }
+    .muted { fill:#7A8C74; font-size:12px; }
+    .arrow { stroke:#1C2B1E; stroke-width:2; fill:none; marker-end:url(#arrowhead); }
+  </style>
+
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#1C2B1E" />
+    </marker>
+  </defs>
+
+  <!-- RawMessage -->
+  <rect class="box" x="40" y="40" width="300" height="140" />
+  <text class="title" x="60" y="64">RawMessage</text>
+  <text class="field" x="60" y="88">_id : ObjectId (PK)</text>
+  <text class="field" x="60" y="106">text : String (required)</text>
+  <text class="field" x="60" y="124">source : String (default: manual)</text>
+  <text class="field" x="60" y="142">createdAt : Date (default: now)</text>
+
+  <!-- ParsedMessage -->
+  <rect class="box" x="420" y="20" width="420" height="280" />
+  <text class="title" x="400" y="44">ParsedMessage</text>
+  <text class="field" x="440" y="68">_id : ObjectId (PK)</text>
+  <text class="field" x="440" y="86">rawMessageId : ObjectId (FK)</text>
+  <text class="field" x="440" y="104">company, receipt : String</text>
+  <text class="field" x="440" y="122">gross, tare, net : Number</text>
+  <text class="field" x="440" y="140">vehicle, product, party : String</text>
+  <text class="field" x="440" y="158">location : String</text>
+  <text class="field" x="440" y="176">dates : [String]</text>
+  <text class="field" x="440" y="194">pricePerKg : Number (default: 0)</text>
+  <text class="field" x="440" y="212">value : Number (net * pricePerKg)</text>
+  <text class="field" x="440" y="230">createdAt : Date (default: now)</text>
+
+  <!-- Vendor -->
+  <rect class="box" x="40" y="240" width="300" height="120" />
+  <text class="title" x="60" y="224">Vendor</text>
+  <text class="field" x="60" y="286">_id : ObjectId (PK)</text>
+  <text class="field" x="60" y="304">name : String (required)</text>
+  <text class="field" x="60" y="322">location : String (default: empty)</text>
+  <text class="field" x="60" y="340">createdAt : Date (default: now)</text>
+
+  <!-- Pricing -->
+  <rect class="box" x="420" y="340" width="420" height="120" />
+  <text class="title" x="400" y="264">Pricing</text>
+  <text class="field" x="440" y="386">_id : ObjectId (PK)</text>
+  <text class="field" x="440" y="404">product : String (required, unique)</text>
+  <text class="field" x="440" y="422">pricePerKg : Number (required)</text>
+  <text class="field" x="440" y="440">createdAt : Date (default: now)</text>
+
+  <!-- Relationships -->
+  <path class="arrow" d="M340 110 L420 110" />
+  <text class="muted" x="350" y="102">1</text>
+  <text class="muted" x="392" y="102">0..1</text>
+  <text class="muted" x="350" y="132">raw message is parsed into</text>
+
+  <path class="arrow" d="M630 300 L630 340" />
+  <text class="muted" x="650" y="326">lookup by product (0..many)</text>
+
+  <!-- Footer note -->
+  <text class="muted" x="40" y="490">ParsedMessage.product uses Pricing.product as a unique business-key lookup; Vendor is currently independent.</text>
+
+</svg>

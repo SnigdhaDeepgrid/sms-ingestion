@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <style>
+    .box { fill: #ffffff; stroke: #1C2B1E; stroke-width: 2; }
+    .header { fill: #1C2B1E; }
+    .title { font: 700 16px 'Segoe UI', Arial, sans-serif; fill: #ffffff; }
+    .field { font: 13px 'Segoe UI', Arial, sans-serif; fill: #1C2B1E; }
+    .note { font: 12px 'Segoe UI', Arial, sans-serif; fill: #7A8C74; }
+    .line { stroke: #1C2B1E; stroke-width: 2; fill: none; }
+    .dashed { stroke-dasharray: 7 5; }
+  </style>
+
+  <text x="40" y="36" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#1C2B1E">UML Class Diagram — SMS Ingestion Dashboard</text>
+
+  <!-- RawMessage -->
+  <rect class="box" x="40" y="80" width="330" height="190" rx="4" />
+  <rect class="header" x="40" y="80" width="330" height="38" rx="4" />
+  <text class="title" x="58" y="105">RawMessage</text>
+  <text class="field" x="58" y="145">+ ObjectId _id &lt;&lt;PK&gt;&gt;</text>
+  <text class="field" x="58" y="166">+ String text &lt;&lt;required&gt;&gt;</text>
+  <text class="field" x="58" y="187">+ String source = manual</text>
+  <text class="field" x="58" y="208">+ Date createdAt</text>
+
+  <!-- ParsedMessage -->
+  <rect class="box" x="435" y="65" width="390" height="350" rx="4" />
+  <rect class="header" x="435" y="65" width="390" height="38" rx="4" />
+  <text class="title" x="453" y="90">ParsedMessage</text>
+  <text class="field" x="453" y="130">+ ObjectId _id &lt;&lt;PK&gt;&gt;</text>
+  <text class="field" x="453" y="151">+ ObjectId rawMessageId &lt;&lt;FK&gt;&gt;</text>
+  <text class="field" x="453" y="172">+ String company</text>
+  <text class="field" x="453" y="193">+ String receipt</text>
+  <text class="field" x="453" y="214">+ Number gross, tare, net</text>
+  <text class="field" x="453" y="235">+ String vehicle, product</text>
+  <text class="field" x="453" y="256">+ String party, location</text>
+  <text class="field" x="453" y="277">+ String[] dates</text>
+  <text class="field" x="453" y="298">+ Number pricePerKg = 0</text>
+  <text class="field" x="453" y="319">+ Number value</text>
+  <text class="field" x="453" y="340">+ Date createdAt</text>
+
+  <!-- Pricing -->
+  <rect class="box" x="435" y="500" width="390" height="170" rx="4" />
+  <rect class="header" x="435" y="500" width="390" height="38" rx="4" />
+  <text class="title" x="453" y="525">Pricing</text>
+  <text class="field" x="453" y="565">+ ObjectId _id &lt;&lt;PK&gt;&gt;</text>
+  <text class="field" x="453" y="586">+ String product &lt;&lt;unique&gt;&gt;</text>
+  <text class="field" x="453" y="607">+ Number pricePerKg &lt;&lt;required&gt;&gt;</text>
+  <text class="field" x="453" y="628">+ Date createdAt</text>
+
+  <!-- Vendor -->
+  <rect class="box" x="890" y="80" width="270" height="190" rx="4" />
+  <rect class="header" x="890" y="80" width="270" height="38" rx="4" />
+  <text class="title" x="908" y="105">Vendor</text>
+  <text class="field" x="908" y="145">+ ObjectId _id &lt;&lt;PK&gt;&gt;</text>
+  <text class="field" x="908" y="166">+ String name &lt;&lt;required&gt;&gt;</text>
+  <text class="field" x="908" y="187">+ String location = ""</text>
+  <text class="field" x="908" y="208">+ Date createdAt</text>
+
+  <!-- SMSIngestionService -->
+  <rect class="box" x="40" y="500" width="330" height="190" rx="4" />
+  <rect class="header" x="40" y="500" width="330" height="38" rx="4" />
+  <text class="title" x="58" y="525">SMSIngestionService</text>
+  <text class="field" x="58" y="565">+ parseMessage(text) ParsedMessage</text>
+  <text class="field" x="58" y="586">+ storeMessage(text, source) RawMessage</text>
+  <text class="field" x="58" y="607">+ reparseMessages() void</text>
+  <text class="field" x="58" y="628">+ calculateValue(net, price) Number</text>
+
+  <!-- Relationships -->
+  <path class="line" d="M370 175 L435 175" />
+  <text class="note" x="378" y="165">1</text>
+  <text class="note" x="407" y="165">0..1</text>
+  <text class="note" x="378" y="198">rawMessageId</text>
+
+  <path class="line" d="M630 500 L630 415" />
+  <text class="note" x="650" y="465">product lookup</text>
+
+  <path class="line" d="M825 175 L890 175" />
+  <text class="note" x="838" y="165">0..* to 1: company</text>
+
+  <path class="line dashed" d="M370 570 L435 360" />
+  <path class="line dashed" d="M370 610 L435 585" />
+  <path class="line dashed" d="M370 650 L435 620" />
+  <text class="note" x="180" y="725">Dashed arrows represent service dependencies; Vendor is currently independent.</text>
+</svg>

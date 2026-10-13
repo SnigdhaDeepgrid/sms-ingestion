@@ -1,0 +1,381 @@
+openapi: 3.0.3
+info:
+  title: SMS Ingestion Dashboard API
+  version: 1.0.0
+  description: API for SMS ingestion, parsing, vendors, pricing and analytics.
+servers:
+  - url: http://localhost:3003
+    description: Default local server
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: connect.sid
+      description: "Session cookie created by express-session (include this cookie to authenticate)."
+  schemas:
+    RawMessage:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: objectId
+        text:
+          type: string
+        source:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [text]
+
+    ParsedMessage:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: objectId
+        rawMessageId:
+          type: string
+          format: objectId
+        company:
+          type: string
+        receipt:
+          type: string
+        gross:
+          type: number
+        tare:
+          type: number
+        net:
+          type: number
+        vehicle:
+          type: string
+        product:
+          type: string
+        party:
+          type: string
+        location:
+          type: string
+        dates:
+          type: array
+          items:
+            type: string
+        pricePerKg:
+          type: number
+        value:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+
+    Vendor:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: objectId
+        name:
+          type: string
+        location:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [name]
+
+    Pricing:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: objectId
+        product:
+          type: string
+        pricePerKg:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+      required: [product, pricePerKg]
+
+    AuthLogin:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      required: [username, password]
+
+    UploadResponse:
+      type: object
+      properties:
+        processed:
+          type: integer
+        duplicates:
+          type: integer
+        skipped:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParsedMessage'
+
+    Analytics:
+      type: object
+      properties:
+        messageCount:
+          type: integer
+        totalWeight:
+          type: number
+        totalValue:
+          type: number
+
+paths:
+  /auth/login:
+    post:
+      summary: Login with credentials
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthLogin'
+      responses:
+        '200':
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { ok: { type: boolean } }
+
+  /auth/logout:
+    post:
+      summary: Logout and destroy session
+      responses:
+        '200':
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { ok: { type: boolean } }
+
+  /auth/me:
+    get:
+      summary: Get current session user
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    anyOf:
+                      - type: string
+                      - type: 'null'
+
+  /messages:
+    post:
+      summary: Store raw and parsed message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text: { type: string }
+                source: { type: string }
+              required: [text]
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  raw:
+                    $ref: '#/components/schemas/RawMessage'
+                  parsed:
+                    $ref: '#/components/schemas/ParsedMessage'
+
+    get:
+      summary: List raw messages
+      responses:
+        '200':
+          description: Raw messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RawMessage'
+
+  /messages/parse:
+    post:
+      summary: Dry-run parse of a message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text: { type: string }
+              required: [text]
+      responses:
+        '200':
+          description: Parsed object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParsedMessage'
+
+  /parsed:
+    get:
+      summary: List parsed messages
+      responses:
+        '200':
+          description: Parsed messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ParsedMessage'
+
+  /processed:
+    get:
+      summary: Alias for /parsed
+      responses:
+        '200':
+          description: Parsed messages (alias)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ParsedMessage'
+
+  /vendors:
+    post:
+      summary: Create vendor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                location: { type: string }
+              required: [name]
+      responses:
+        '201':
+          description: Created vendor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vendor'
+
+    get:
+      summary: List vendors
+      responses:
+        '200':
+          description: Vendors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Vendor'
+
+  /pricing:
+    post:
+      summary: Upsert pricing for a product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                product: { type: string }
+                pricePerKg: { type: number }
+              required: [product, pricePerKg]
+      responses:
+        '201':
+          description: Created / updated pricing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pricing'
+
+    get:
+      summary: List pricing entries
+      responses:
+        '200':
+          description: Pricing
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Pricing'
+
+  /upload:
+    post:
+      summary: Bulk upload messages (JSON array or plain text)
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Upload processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadResponse'
+        '401':
+          description: Unauthorized
+
+  /analytics:
+    get:
+      summary: Aggregated analytics
+      responses:
+        '200':
+          description: Analytics summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Analytics'
+
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: Health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string }
+                  db: { type: string }
+
+security: []
